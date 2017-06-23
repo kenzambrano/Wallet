@@ -1,9 +1,9 @@
-import React, {Component} from 'react';
-import {Link} from 'react-router';
-import TextFieldGroup from '../common/TextFieldGroup';
-import ValidateInput from '../../validations/Signin';
-import {connect} from 'react-redux';
-import {signin} from '../../actions/AuthActions';
+import React, {Component} from 'react'
+import {Link} from 'react-router'
+import TextFieldGroup from '../common/TextFieldGroup'
+import ValidateInput from '../../validations/Signin'
+import {connect} from 'react-redux'
+import {signin} from '../../actions/AuthActions'
 
 class SigninForm extends Component {
   constructor(props) {

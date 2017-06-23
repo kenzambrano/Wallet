@@ -1,8 +1,10 @@
-import React, {Component} from 'react';
+import React, {Component} from 'react'
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table'
 import 'react-bootstrap-table/dist/react-bootstrap-table-all.min.css'
-import {connect} from 'react-redux';
+import {connect} from 'react-redux'
+import DepositForm from './DepositForm'
+import WithdrawalForm from './WithdrawalForm'
 import {db} from '../../api/firebase'
 class Balance extends Component {
 
@@ -68,7 +70,6 @@ class Balance extends Component {
     }
   }
 
-
   render() {
     const {data, balance, deposits, withdrawals, toDeposit, modalDeposit, modalWithdrawals} = this.state;
     return (
@@ -108,39 +109,34 @@ class Balance extends Component {
 
               {modalDeposit ?
                 <div className="deposit-content">
-                  <form>
-                    <input/>
-                    <button>Guardar</button>
-                    <button onClick={this.hideDeposit}>Cancelar</button>
-                  </form>
+                  <DepositForm hideDeposit={this.hideDeposit}/>
                 </div> 
               : null}
 
               {modalWithdrawals ?
                 <div className="withdrawals-content">
-                  <form>
-                    <input/>
-                    <button>Guardar</button>
-                    <button onClick={this.hideWithdrawals}>Cancelar</button>
-                  </form>
+                    <WithdrawalForm hideWithdrawals={this.hideWithdrawals}/>
                 </div> 
               : null}
 
               <br/>
               <br/>
-              
+
               <BootstrapTable data={data} striped hover remote={true} tableContainerclassName='table-sm '
-                              pagination
-                              options={{
-                                sizePerPage: 20,
-                                paginationSize: 5,
-                                paginationShowsTotal: false,//this.renderPaginationShowsTotal,
-                                prePage: '<',
-                                nextPage: '>',
-                                firstPage: '<<',
-                                lastPage: '>>'
-                              }}>
-                <TableHeaderColumn dataField='Com_FechaEmision ' isKey={true} dataSort={true}>Fecha</TableHeaderColumn>
+                pagination
+                options={{
+                  sizePerPage: 20,
+                  paginationSize: 5,
+                  paginationShowsTotal: false,//this.renderPaginationShowsTotal,
+                  prePage: '<',
+                  nextPage: '>',
+                  firstPage: '<<',
+                  lastPage: '>>'
+                }}>
+                <TableHeaderColumn dataField='Com_Email' isKey={true} dataSort={true}>Usuario</TableHeaderColumn>
+                <TableHeaderColumn dataField='Com_Transaccion'>Transaccion</TableHeaderColumn>
+                <TableHeaderColumn dataField='Com_Monto '>Monto</TableHeaderColumn>
+                <TableHeaderColumn dataField='Com_Fecha'>Fecha</TableHeaderColumn>
               </BootstrapTable>
             </div>
           </div>
