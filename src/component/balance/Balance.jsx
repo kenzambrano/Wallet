@@ -1,11 +1,11 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
-import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table'
+import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table'
 import 'react-bootstrap-table/dist/react-bootstrap-table-all.min.css'
-import {connect} from 'react-redux'
+import { connect } from 'react-redux'
 import DepositForm from './DepositForm'
 import WithdrawalForm from './WithdrawalForm'
-import {db} from '../../api/firebase'
+import { db } from '../../api/firebase'
 class Balance extends Component {
 
   constructor(props) {
@@ -14,8 +14,6 @@ class Balance extends Component {
       balance: 0,
       deposits: 0,
       withdrawals: 0,
-      toDeposit: null,
-      towithdrawals: null,
       modalDeposit: false,
       modalWithdrawals: false,
       data: []
@@ -32,7 +30,7 @@ class Balance extends Component {
     const $this = this
     db.ref(`/balance/${this.props.auth.user.uid}`).on('value', snap => {
       if (snap.val()) {
-        $this.setState({balance: snap.val().balance})
+        $this.setState({ balance: snap.val().balance })
       }
     })
 
@@ -44,34 +42,51 @@ class Balance extends Component {
           last.key = data.key
           rows.push(last)
         })
-        $this.setState({data: rows})
+        $this.setState({ data: rows })
       }
     })
   }
 
-  showDeposit(){
-    this.setState({toDeposit: null, modalDeposit: true, modalWithdrawals: false})
+  showDeposit() {
+    this.setState({ toDeposit: null, modalDeposit: true, modalWithdrawals: false })
   }
-  hideDeposit(){
-    this.setState({toDeposit: null, modalDeposit: false, modalWithdrawals: false})
-  }
-
-  showWithdrawals(){
-    this.setState({toDeposit: null, modalDeposit: false, modalWithdrawals: true})
-  }
-  hideWithdrawals(){
-    this.setState({toDeposit: null, modalDeposit: false, modalWithdrawals: false})
+  hideDeposit() {
+    this.setState({ toDeposit: null, modalDeposit: false, modalWithdrawals: false })
   }
 
-  deposit(e){
-    e.preventDefault()
-    if(this.state.toDeposit){
-      console.log("")
-    }
+  showWithdrawals() {
+    this.setState({ toDeposit: null, modalDeposit: false, modalWithdrawals: true })
   }
+  hideWithdrawals() {
+    this.setState({ toDeposit: null, modalDeposit: false, modalWithdrawals: false })
+  }
+
+  deposit(state) {    
+    const key = db.ref().child('transactions').push().key
+    var updates = {};
+    updates[`/transactions/${this.props.auth.user.uid}/` + key] = { ammount: state.montoDeposito }
+    db.ref().update(updates)
+    db.ref(`balance/${this.props.auth.user.uid}`).once('value', balance => {      
+      if (balance.val()) {
+        var total = (parseInt(balance.val().balance) + parseInt(state.montoDeposito))        
+        db.ref(`balance/${this.props.auth.user.uid}`).set({ balance:  total })
+      } else {
+        db.ref(`balance/${this.props.auth.user.uid}`).set({ balance: state.montoDeposito })
+      }
+    })
+
+  }
+  //  {  
+  //       "deposit": "100",4
+  //       "type": 1,
+  //       "approved": 3,
+  //       "createdAt": "2017-05-10T17:42:22.579Z",
+  //       "updatedAt": "2017-05-10T22:07:58.728Z",  
+  //       "notes": ""
+  //     },
 
   render() {
-    const {data, balance, deposits, withdrawals, toDeposit, modalDeposit, modalWithdrawals} = this.state;
+    const { data, balance, deposits, withdrawals, toDeposit, modalDeposit, modalWithdrawals } = this.state;
     return (
       <ReactCSSTransitionGroup
         transitionName="fade"
@@ -100,27 +115,27 @@ class Balance extends Component {
               </ul>
             </div>
             <div className="balance-transactions offset-lg-1 col-lg-8 col-xs-12">
-              <br/>
+              <br />
               <h3>Transacciones</h3>
-              <br/>
+              <br />
               <button className="btn btn-info" onClick={this.showDeposit}>Deposito</button>
               &nbsp;&nbsp;
               <button className="btn btn-success" onClick={this.showWithdrawals}>Solicitud de Retiro</button>
 
               {modalDeposit ?
                 <div className="deposit-content">
-                  <DepositForm hideDeposit={this.hideDeposit}/>
-                </div> 
-              : null}
+                  <DepositForm hideDeposit={this.hideDeposit} deposit={this.deposit} />
+                </div>
+                : null}
 
               {modalWithdrawals ?
                 <div className="withdrawals-content">
-                    <WithdrawalForm hideWithdrawals={this.hideWithdrawals}/>
-                </div> 
-              : null}
+                  <WithdrawalForm hideWithdrawals={this.hideWithdrawals} />
+                </div>
+                : null}
 
-              <br/>
-              <br/>
+              <br />
+              <br />
 
               <BootstrapTable data={data} striped hover remote={true} tableContainerclassName='table-sm '
                 pagination
@@ -133,9 +148,9 @@ class Balance extends Component {
                   firstPage: '<<',
                   lastPage: '>>'
                 }}>
-                <TableHeaderColumn dataField='Com_Email' isKey={true} dataSort={true}>Usuario</TableHeaderColumn>
+                <TableHeaderColumn dataField='key' isKey={true} dataSort={true}>Usuario</TableHeaderColumn>
                 <TableHeaderColumn dataField='Com_Transaccion'>Transaccion</TableHeaderColumn>
-                <TableHeaderColumn dataField='Com_Monto '>Monto</TableHeaderColumn>
+                <TableHeaderColumn dataField='ammount'>Monto</TableHeaderColumn>
                 <TableHeaderColumn dataField='Com_Fecha'>Fecha</TableHeaderColumn>
               </BootstrapTable>
             </div>
