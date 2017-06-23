@@ -1,22 +1,17 @@
-import axios from 'axios';
-import SetAuthorizationToken from '../middleware/SetAuthorizationToken';
-import SetCurrentUser from '../middleware/SetCurrentUser';
+import { SET_CURRENT_USER } from './Types';
+import {auth} from '../api/firebase'
 
-export function logout() {
-     axios.post('/account/logout');
-    return dispatch => {
-        localStorage.removeItem('account');
-        SetAuthorizationToken(false);
-        dispatch(SetCurrentUser({}));
-    }
+export function SetCurrentUser(user) {
+  return {
+    type: SET_CURRENT_USER,
+    user
+  };
 }
 
-export function signin(data) {
-    return dispatch => {
-        return axios.post('/account/singIn', data).then(res => {
-            const data = res.data;
-            localStorage.setItem('account', JSON.stringify(data));
-            dispatch(SetCurrentUser(data));
-        });
-    }
+export function logout() {
+  return auth.signOut()
+}
+
+export  function signin(user) {
+  return auth.signInWithEmailAndPassword(user.email, user.password)
 }

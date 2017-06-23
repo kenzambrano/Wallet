@@ -1,0 +1,58 @@
+ul{
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.body-content{
+    padding-top: 56px;
+}
+
+/* Balance */
+
+.balance-detail{
+    border: 1px solid #ddd;
+    background: #fff;
+    padding: 30px 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.balance-detail ul li{
+    border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+}
+
+.balance-detail ul li:last-child{
+    border: 0;
+}
+
+.balance-detail ul li h4,
+.balance-detail ul li h1{
+    text-align: center;
+}
+
+.balance-detail ul li h1{
+    padding: 10px 0;
+    color: #555;
+}
+
+.balance-transactions{
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    margin-bottom: 20px;
+    background: #fff;
+}
+
+.balance-transactions h3{
+    text-align: center;
+}
+
+
+.deposit-content,
+.withdrawals-content{
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    padding: 30px 15px;
+}
