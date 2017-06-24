@@ -29,15 +29,15 @@ class Balance extends Component {
   componentDidMount() {
     const $this = this
     db.ref(`/balance/${this.props.auth.user.uid}`).on('value', snap => {
-      if (snap.val()) {
-        $this.setState({ balance: snap.val().balance })
-      }
+      if (snap.val()) $this.setState({ balance: snap.val().balance })
     })
 
     db.ref(`/deposits/${this.props.auth.user.uid}`).on('value', snap => {
-      if (snap.val()) {
-        $this.setState({ deposits: snap.val().deposits })
-      }
+      if (snap.val()) $this.setState({ deposits: snap.val().deposits })
+    })
+
+    db.ref(`/withdrawals/${this.props.auth.user.uid}`).on('value', snap => {
+      if (snap.val()) $this.setState({ withdrawals: snap.val().withdrawals })
     })
 
     db.ref(`/transactions/${this.props.auth.user.uid}`).on('value', snap => {
@@ -82,6 +82,7 @@ class Balance extends Component {
       created: "",
       updated: ""
     }
+    // insert transaction
     db.ref().update(updates)
     // insert balance
     db.ref(`balance/${this.props.auth.user.uid}`).once('value', balance => {      
@@ -114,17 +115,27 @@ class Balance extends Component {
       created: "",
       updated: ""
     }
-    db.ref().update(updates)
+    // select balance
+    db.ref(`balance/${this.props.auth.user.uid}`).on('value', snap => {
+        if (snap.val() && ((parseInt(snap.val().balance)) >= (parseInt(state.montoRetiro)))) {
+          // insert transaction
+          db.ref().update(updates)
+          // insert withdrawals
+          db.ref(`withdrawals/${this.props.auth.user.uid}`).once('value', withdrawals => {
+            if (withdrawals.val()) {
+              var total = (parseInt(withdrawals.val().withdrawals)) + (parseInt(state.montoRetiro))
+              db.ref(`withdrawals/${this.props.auth.user.uid}`).set({ withdrawals: total })
+            } else {
+              db.ref(`withdrawals/${this.props.auth.user.uid}`).set({ withdrawals: state.montoRetiro })
+            }
+          })
+        }
+    })
   }
 
-  //  {  
-  //       "deposit": "100",4
-  //       "type": 1,
-  //       "approved": 3,
-  //       "createdAt": "2017-05-10T17:42:22.579Z",
-  //       "updatedAt": "2017-05-10T22:07:58.728Z",  
-  //       "notes": ""
-  //     },
+  approvedWithdrawal(){
+
+  }
 
   render() {
     const { data, balance, deposits, withdrawals, toDeposit, modalDeposit, modalWithdrawals } = this.state;
@@ -212,12 +223,11 @@ class Balance extends Component {
                   paginationShowsTotal: false,//this.renderPaginationShowsTotal,
                   prePage: '<', nextPage: '>', firstPage: '<<', lastPage: '>>'
                 }}>
-                <TableHeaderColumn dataField='key' isKey={true} dataSort={true}>Usuario</TableHeaderColumn>
-                <TableHeaderColumn dataField='type'>Transacción</TableHeaderColumn>
+                
+                <TableHeaderColumn dataField='type' isKey={true}>Transacción</TableHeaderColumn>
                 <TableHeaderColumn dataField='ammount'>Monto</TableHeaderColumn>
                 <TableHeaderColumn dataField='approved'>Estado</TableHeaderColumn>
                 <TableHeaderColumn dataField='updated'>Fecha</TableHeaderColumn>
-
               </BootstrapTable>
             </div>
           </div>
