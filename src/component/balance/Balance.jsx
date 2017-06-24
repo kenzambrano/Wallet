@@ -7,7 +7,6 @@ import DepositForm from './DepositForm'
 import WithdrawalForm from './WithdrawalForm'
 import { db } from '../../api/firebase'
 class Balance extends Component {
-
   constructor(props) {
     super(props);
     this.state = {
@@ -20,6 +19,7 @@ class Balance extends Component {
     }
 
     this.deposit = this.deposit.bind(this)
+    this.withdrawal = this.withdrawal.bind(this)
     this.showDeposit = this.showDeposit.bind(this)
     this.hideDeposit = this.hideDeposit.bind(this)
     this.showWithdrawals = this.showWithdrawals.bind(this)
@@ -31,6 +31,12 @@ class Balance extends Component {
     db.ref(`/balance/${this.props.auth.user.uid}`).on('value', snap => {
       if (snap.val()) {
         $this.setState({ balance: snap.val().balance })
+      }
+    })
+
+    db.ref(`/deposits/${this.props.auth.user.uid}`).on('value', snap => {
+      if (snap.val()) {
+        $this.setState({ deposits: snap.val().deposits })
       }
     })
 
@@ -61,11 +67,23 @@ class Balance extends Component {
     this.setState({ toDeposit: null, modalDeposit: false, modalWithdrawals: false })
   }
 
+  getTime() {
+
+  }
+
   deposit(state) {    
     const key = db.ref().child('transactions').push().key
-    var updates = {};
-    updates[`/transactions/${this.props.auth.user.uid}/` + key] = { ammount: state.montoDeposito }
+    var updates = {}
+    updates[`/transactions/${this.props.auth.user.uid}/` + key] = { 
+      ammount: state.montoDeposito,
+      type: 1,
+      approved: 1,
+      note: "",
+      created: "",
+      updated: ""
+    }
     db.ref().update(updates)
+    // insert balance
     db.ref(`balance/${this.props.auth.user.uid}`).once('value', balance => {      
       if (balance.val()) {
         var total = (parseInt(balance.val().balance) + parseInt(state.montoDeposito))        
@@ -74,8 +92,31 @@ class Balance extends Component {
         db.ref(`balance/${this.props.auth.user.uid}`).set({ balance: state.montoDeposito })
       }
     })
-
+    // insert deposits
+    db.ref(`deposits/${this.props.auth.user.uid}`).once('value', deposits => {
+      if (deposits.val()) {
+        var total = (parseInt(deposits.val().deposits)) + (parseInt(state.montoDeposito))
+        db.ref(`deposits/${this.props.auth.user.uid}`).set({ deposits: total })
+      } else {
+        db.ref(`deposits/${this.props.auth.user.uid}`).set({ deposits: state.montoDeposito })
+      }
+    })
   }
+
+  withdrawal(state) {
+    const key = db.ref().child('transactions').push().key
+    var updates = {}
+    updates[`/transactions/${this.props.auth.user.uid}/` + key] = { 
+      ammount: state.montoRetiro,
+      type: 2,
+      approved: 2,
+      note: "",
+      created: "",
+      updated: ""
+    }
+    db.ref().update(updates)
+  }
+
   //  {  
   //       "deposit": "100",4
   //       "type": 1,
@@ -95,8 +136,34 @@ class Balance extends Component {
         transitionEnter={false}
         transitionLeave={false}>
 
-        {this.props.auth.user.profile === 1 ? <h1>Admin</h1> :
+        {this.props.auth.user.profile === 1 ? 
+        
+          <div className="balance-main row">
+            <div className="balance-transactions col-lg-12 col-xs-12">
+              <br />
+              <h3>Solicitud de Retiros</h3>
+              <br />
 
+              <BootstrapTable data={data} striped hover remote={true} tableContainerclassName='table-sm '
+                pagination
+                options={{
+                  sizePerPage: 20,
+                  paginationSize: 5,
+                  paginationShowsTotal: false,//this.renderPaginationShowsTotal,
+                  prePage: '<',
+                  nextPage: '>',
+                  firstPage: '<<',
+                  lastPage: '>>'
+                }}>
+                <TableHeaderColumn dataField='key' isKey={true} dataSort={true}>Usuario</TableHeaderColumn>
+                <TableHeaderColumn dataField='Com_Transaccion'>Transacción</TableHeaderColumn>
+                <TableHeaderColumn dataField='ammount'>Monto</TableHeaderColumn>
+                <TableHeaderColumn dataField='Com_Fecha'>Fecha</TableHeaderColumn>
+              </BootstrapTable>
+            </div>
+          </div>
+
+        :
           <div className="balance-main row">
             <div className="balance-detail col-lg-3 col-xs-12">
               <ul>
@@ -130,7 +197,7 @@ class Balance extends Component {
 
               {modalWithdrawals ?
                 <div className="withdrawals-content">
-                  <WithdrawalForm hideWithdrawals={this.hideWithdrawals} />
+                  <WithdrawalForm hideWithdrawals={this.hideWithdrawals} withdrawal={this.withdrawal} />
                 </div>
                 : null}
 
@@ -143,15 +210,14 @@ class Balance extends Component {
                   sizePerPage: 20,
                   paginationSize: 5,
                   paginationShowsTotal: false,//this.renderPaginationShowsTotal,
-                  prePage: '<',
-                  nextPage: '>',
-                  firstPage: '<<',
-                  lastPage: '>>'
+                  prePage: '<', nextPage: '>', firstPage: '<<', lastPage: '>>'
                 }}>
                 <TableHeaderColumn dataField='key' isKey={true} dataSort={true}>Usuario</TableHeaderColumn>
-                <TableHeaderColumn dataField='Com_Transaccion'>Transaccion</TableHeaderColumn>
+                <TableHeaderColumn dataField='type'>Transacción</TableHeaderColumn>
                 <TableHeaderColumn dataField='ammount'>Monto</TableHeaderColumn>
-                <TableHeaderColumn dataField='Com_Fecha'>Fecha</TableHeaderColumn>
+                <TableHeaderColumn dataField='approved'>Estado</TableHeaderColumn>
+                <TableHeaderColumn dataField='updated'>Fecha</TableHeaderColumn>
+
               </BootstrapTable>
             </div>
           </div>

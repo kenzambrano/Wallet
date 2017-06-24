@@ -3,7 +3,6 @@ import { Link } from 'react-router'
 import TextFieldGroup from '../common/TextFieldGroup'
 import ValidateInput from '../../validations/Deposit'
 import { connect } from 'react-redux'
-
 class DepositForm extends Component {
 	constructor(props) {
 		super(props);
