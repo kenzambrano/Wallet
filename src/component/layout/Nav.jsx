@@ -18,11 +18,12 @@ class Nav extends Component {
 					<span className="navbar-toggler-icon"></span>
 				</button>
 				<a className="navbar-brand" href="#">Wallet</a>
-
 				<div className="collapse navbar-collapse" id="navbarSupportedContent">
 					<ul className="navbar-nav mr-auto">
 					</ul>
-					<button className="btn btn-outline-danger my-2 my-sm-0" type="button" onClick={this.props.logout}>Cerrar sesion</button>
+					<button className="btn btn-outline-danger my-2 my-sm-0" type="submit" onClick={this.logout}>
+						Cerrar sesion
+					</button>
 				</div>
 			</nav>
 		);

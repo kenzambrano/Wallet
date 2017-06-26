@@ -15,7 +15,8 @@ class Balance extends Component {
       withdrawals: 0,
       modalDeposit: false,
       modalWithdrawals: false,
-      data: []
+      data: [],
+      dataAdmin: []
     }
 
     this.deposit = this.deposit.bind(this)
@@ -50,6 +51,18 @@ class Balance extends Component {
         })
         $this.setState({ data: rows })
       }
+    })
+
+    db.ref(`/transactions/${this.props.auth.user.uid}`).on('value', snap => {
+        if(snap.val()){
+          let rows = []
+          snap.forEach((dataAdmin) => {
+            var last = dataAdmin.val()
+            last.key = dataAdmin.key
+            rows.push(last)
+          })
+          this.setState({ dataAdmin: rows })
+        }
     })
   }
 
@@ -120,7 +133,7 @@ class Balance extends Component {
         if (snap.val() && ((parseInt(snap.val().balance)) >= (parseInt(state.montoRetiro)))) {
           // insert transaction
           db.ref().update(updates)
-          // insert withdrawals
+          // withdrawals
           db.ref(`withdrawals/${this.props.auth.user.uid}`).once('value', withdrawals => {
             if (withdrawals.val()) {
               var total = (parseInt(withdrawals.val().withdrawals)) + (parseInt(state.montoRetiro))
@@ -133,12 +146,29 @@ class Balance extends Component {
     })
   }
 
-  approvedWithdrawal(){
-
+  approvedWithdrawal(state){
+    var user = "5fCFigj0zcZTK9AUuZYPvdsEg4l25fCFigj0zcZTK9AUuZYPvdsEg4l2"
+    //var user = this.props.auth.user.uid
+    var id = "-KnZYP-h6vII_xh5oGkf"
+    var approvedValue = 1
+    var noteValue = ""
+    
+    db.ref(`/transactions/${user}/${id}`).on('value', transactions => {
+      if (transactions.val() && (parseInt(transactions.val().type) == 2 && parseInt(transactions.val().approved) == 2)) {
+        db.ref(`/balance/${user}`).once('value', balance => {
+          if(balance.val() && (parseInt(balance.val().balance) >= parseInt(transactions.val().ammount))){
+            db.ref(`/transactions/${user}/${id}`).set({ 
+              approved: approvedValue, 
+              note: noteValue 
+            })
+          }
+        })
+      } 
+    })
   }
 
   render() {
-    const { data, balance, deposits, withdrawals, toDeposit, modalDeposit, modalWithdrawals } = this.state;
+    const { data, dataAdmin, balance, deposits, withdrawals, toDeposit, modalDeposit, modalWithdrawals } = this.state;
     return (
       <ReactCSSTransitionGroup
         transitionName="fade"
@@ -155,7 +185,7 @@ class Balance extends Component {
               <h3>Solicitud de Retiros</h3>
               <br />
 
-              <BootstrapTable data={data} striped hover remote={true} tableContainerclassName='table-sm '
+              <BootstrapTable data={dataAdmin} striped hover remote={true} tableContainerclassName='table-sm '
                 pagination
                 options={{
                   sizePerPage: 20,
@@ -167,9 +197,10 @@ class Balance extends Component {
                   lastPage: '>>'
                 }}>
                 <TableHeaderColumn dataField='key' isKey={true} dataSort={true}>Usuario</TableHeaderColumn>
-                <TableHeaderColumn dataField='Com_Transaccion'>Transacción</TableHeaderColumn>
+                <TableHeaderColumn dataField='type'>Transacción</TableHeaderColumn>
                 <TableHeaderColumn dataField='ammount'>Monto</TableHeaderColumn>
-                <TableHeaderColumn dataField='Com_Fecha'>Fecha</TableHeaderColumn>
+                <TableHeaderColumn dataField='updated'>Fecha</TableHeaderColumn>
+                <TableHeaderColumn > Acciones </TableHeaderColumn>
               </BootstrapTable>
             </div>
           </div>
@@ -220,10 +251,9 @@ class Balance extends Component {
                 options={{
                   sizePerPage: 20,
                   paginationSize: 5,
-                  paginationShowsTotal: false,//this.renderPaginationShowsTotal,
+                  paginationShowsTotal: false,
                   prePage: '<', nextPage: '>', firstPage: '<<', lastPage: '>>'
                 }}>
-                
                 <TableHeaderColumn dataField='type' isKey={true}>Transacción</TableHeaderColumn>
                 <TableHeaderColumn dataField='ammount'>Monto</TableHeaderColumn>
                 <TableHeaderColumn dataField='approved'>Estado</TableHeaderColumn>

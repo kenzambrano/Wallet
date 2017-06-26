@@ -9,6 +9,7 @@ export function SetCurrentUser(user) {
 }
 
 export function logout() {
+  console.log('aqiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii')
   return auth.signOut()
 }
 
