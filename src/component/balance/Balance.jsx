@@ -18,7 +18,16 @@ class Balance extends Component {
       modalApproved: false,
       data: [],
       dataAdmin: [],
-      errors: {}
+      errors: {},
+      types: {
+        1: 'Deposito',
+        2: 'Retiro'
+      },
+      status: {
+        1: 'Aprobado',
+        2: 'En espera',
+        3: 'Rechazado'
+      }
     }
 
     this.deposit = this.deposit.bind(this)
@@ -59,9 +68,13 @@ class Balance extends Component {
         if(snap.val()){
           let rows = []
           snap.forEach((dataAdmin) => {
-            var last = dataAdmin.val()
-            last.key = dataAdmin.key
-            rows.push(last)
+            var type = 2 
+            var last = ""
+            if(dataAdmin.val().type == 2){
+               last = dataAdmin.val()
+               last.key = dataAdmin.key
+               rows.push(last)
+            }
           })
           this.setState({ dataAdmin: rows })
         }
@@ -175,8 +188,12 @@ class Balance extends Component {
     })
   }
 
+  enumFormatter(cell, row, enumObject){
+    return enumObject[cell];
+  }
+
   render() {
-    const { data, dataAdmin, balance, deposits, withdrawals, toDeposit, modalDeposit, modalWithdrawals, errors, } = this.state;
+    const { data, dataAdmin, balance, deposits, withdrawals, toDeposit, modalDeposit, modalWithdrawals, errors, types, status, } = this.state;
     return (
       <ReactCSSTransitionGroup
         transitionName="fade"
@@ -203,8 +220,9 @@ class Balance extends Component {
                   lastPage: '>>'
                 }}>
                 <TableHeaderColumn dataField='key' isKey={true} dataSort={true}>Usuario</TableHeaderColumn>
-                <TableHeaderColumn dataField='type'>Transacción</TableHeaderColumn>
+                <TableHeaderColumn dataField='type' dataFormat={this.enumFormatter} formatExtraData={types}>Transacción</TableHeaderColumn>
                 <TableHeaderColumn dataField='ammount'>Monto</TableHeaderColumn>
+                <TableHeaderColumn dataField='approved' dataFormat={this.enumFormatter} formatExtraData={status}>Estado</TableHeaderColumn>
                 <TableHeaderColumn dataField='updated'>Fecha</TableHeaderColumn>
                 <TableHeaderColumn > Acciones </TableHeaderColumn>
               </BootstrapTable>
@@ -263,9 +281,9 @@ class Balance extends Component {
                   paginationShowsTotal: false,
                   prePage: '<', nextPage: '>', firstPage: '<<', lastPage: '>>'
                 }}>
-                <TableHeaderColumn dataField='type' isKey={true}>Transacción</TableHeaderColumn>
+                <TableHeaderColumn dataField='type' isKey={true} dataFormat={this.enumFormatter} formatExtraData={types}>Transacción</TableHeaderColumn>
                 <TableHeaderColumn dataField='ammount'>Monto</TableHeaderColumn>
-                <TableHeaderColumn dataField='approved'>Estado</TableHeaderColumn>
+                <TableHeaderColumn dataField='approved' dataFormat={this.enumFormatter} formatExtraData={status}>Estado</TableHeaderColumn>
                 <TableHeaderColumn dataField='updated'>Fecha</TableHeaderColumn>
               </BootstrapTable>
             </div>
