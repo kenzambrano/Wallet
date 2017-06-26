@@ -52,7 +52,6 @@ class SigninForm extends Component {
           {errors.form === 'auth/user-not-found' ? 'Usuario no encontrado' : errors.form == 'auth/wrong-password' ? 'Contraseña incorrecta' : 'Error en el sistema'}
         </div>
         }
-
         <TextFieldGroup
           field="email"
           placeholder="Email"
@@ -60,7 +59,6 @@ class SigninForm extends Component {
           error={errors.email}
           onChange={this.onChange}
         />
-
         <TextFieldGroup
           field="password"
           placeholder="Password"
@@ -69,13 +67,11 @@ class SigninForm extends Component {
           onChange={this.onChange}
           type="password"
         />
-
         <div className="checkbox">
           <label>
             <input type="checkbox" id="rememberMe" name="rememberMe"/> Remember me
           </label>
         </div>
-
         <button className="btn btn-lg btn-success btn-block" type="submit" disabled={this.state.loading}>Sign in
         </button>
       </form>

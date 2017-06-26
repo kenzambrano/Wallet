@@ -15,8 +15,10 @@ class Balance extends Component {
       withdrawals: 0,
       modalDeposit: false,
       modalWithdrawals: false,
+      modalApproved: false,
       data: [],
-      dataAdmin: []
+      dataAdmin: [],
+      errors: {}
     }
 
     this.deposit = this.deposit.bind(this)
@@ -68,20 +70,23 @@ class Balance extends Component {
 
   showDeposit() {
     this.setState({ toDeposit: null, modalDeposit: true, modalWithdrawals: false })
+    this.setState({ errors: {form: null}})
   }
   hideDeposit() {
     this.setState({ toDeposit: null, modalDeposit: false, modalWithdrawals: false })
+    this.setState({ errors: {form: null}})
   }
 
   showWithdrawals() {
     this.setState({ toDeposit: null, modalDeposit: false, modalWithdrawals: true })
+    this.setState({ errors: {form: null}})
   }
   hideWithdrawals() {
     this.setState({ toDeposit: null, modalDeposit: false, modalWithdrawals: false })
+    this.setState({ errors: {form: null}})
   }
 
   getTime() {
-
   }
 
   deposit(state) {    
@@ -118,6 +123,7 @@ class Balance extends Component {
   }
 
   withdrawal(state) {
+    //alert(Date.parse(new Date()))
     const key = db.ref().child('transactions').push().key
     var updates = {}
     updates[`/transactions/${this.props.auth.user.uid}/` + key] = { 
@@ -142,7 +148,9 @@ class Balance extends Component {
               db.ref(`withdrawals/${this.props.auth.user.uid}`).set({ withdrawals: state.montoRetiro })
             }
           })
-        }
+          this.setState({ errors: {form: null}})
+        } else 
+          this.setState({ errors: {form: "Saldo insuficiente para esta operación."}})
     })
   }
 
@@ -152,7 +160,7 @@ class Balance extends Component {
     var id = "-KnZYP-h6vII_xh5oGkf"
     var approvedValue = 1
     var noteValue = ""
-    
+    // approved transaction
     db.ref(`/transactions/${user}/${id}`).on('value', transactions => {
       if (transactions.val() && (parseInt(transactions.val().type) == 2 && parseInt(transactions.val().approved) == 2)) {
         db.ref(`/balance/${user}`).once('value', balance => {
@@ -168,7 +176,7 @@ class Balance extends Component {
   }
 
   render() {
-    const { data, dataAdmin, balance, deposits, withdrawals, toDeposit, modalDeposit, modalWithdrawals } = this.state;
+    const { data, dataAdmin, balance, deposits, withdrawals, toDeposit, modalDeposit, modalWithdrawals, errors, } = this.state;
     return (
       <ReactCSSTransitionGroup
         transitionName="fade"
@@ -177,20 +185,18 @@ class Balance extends Component {
         transitionEnter={false}
         transitionLeave={false}>
 
-        {this.props.auth.user.profile === 1 ? 
-        
+        {this.props.auth.user.profile === 2 ? 
           <div className="balance-main row">
             <div className="balance-transactions col-lg-12 col-xs-12">
               <br />
               <h3>Solicitud de Retiros</h3>
               <br />
-
-              <BootstrapTable data={dataAdmin} striped hover remote={true} tableContainerclassName='table-sm '
+              <BootstrapTable data={dataAdmin} striped hover remote={true} tableContainerclassName='table-sm'
                 pagination
                 options={{
                   sizePerPage: 20,
                   paginationSize: 5,
-                  paginationShowsTotal: false,//this.renderPaginationShowsTotal,
+                  paginationShowsTotal: false,
                   prePage: '<',
                   nextPage: '>',
                   firstPage: '<<',
@@ -204,7 +210,6 @@ class Balance extends Component {
               </BootstrapTable>
             </div>
           </div>
-
         :
           <div className="balance-main row">
             <div className="balance-detail col-lg-3 col-xs-12">
@@ -230,22 +235,26 @@ class Balance extends Component {
               <button className="btn btn-info" onClick={this.showDeposit}>Deposito</button>
               &nbsp;&nbsp;
               <button className="btn btn-success" onClick={this.showWithdrawals}>Solicitud de Retiro</button>
-
-              {modalDeposit ?
-                <div className="deposit-content">
-                  <DepositForm hideDeposit={this.hideDeposit} deposit={this.deposit} />
-                </div>
-                : null}
-
-              {modalWithdrawals ?
-                <div className="withdrawals-content">
-                  <WithdrawalForm hideWithdrawals={this.hideWithdrawals} withdrawal={this.withdrawal} />
-                </div>
-                : null}
-
               <br />
               <br />
-
+              
+              {errors.form &&
+                <div className="alert alert-danger" role="alert">
+                    {errors.form}
+                </div>
+              }
+				
+              { modalDeposit ?
+                  <div className="deposit-content">
+                    <DepositForm hideDeposit={this.hideDeposit} deposit={this.deposit} />
+                  </div>
+              : null}
+              { modalWithdrawals ?
+                  <div className="withdrawals-content">
+                    <WithdrawalForm hideWithdrawals={this.hideWithdrawals} withdrawal={this.withdrawal} />
+                  </div>
+              : null}
+              <br />
               <BootstrapTable data={data} striped hover remote={true} tableContainerclassName='table-sm '
                 pagination
                 options={{
@@ -278,5 +287,4 @@ function mapStateToProps(state) {
     auth: state.auth
   }
 }
-
 export default connect(mapStateToProps)(Balance);

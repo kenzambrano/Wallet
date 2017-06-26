@@ -21,9 +21,16 @@ class Nav extends Component {
 				<div className="collapse navbar-collapse" id="navbarSupportedContent">
 					<ul className="navbar-nav mr-auto">
 					</ul>
-					<button className="btn btn-outline-danger my-2 my-sm-0" type="submit" onClick={this.logout}>
-						Cerrar sesion
-					</button>
+					<ul className="navbar-nav my-2 my-sm-0">
+						<li className="nav-item dropdown">
+							<a className="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								Kender Zambrano
+							</a>
+							<div className="dropdown-menu" aria-labelledby="dropdown01">
+								<a className="dropdown-item" onClick={this.props.logout} href="#">Cerrar sesión</a>
+							</div>
+						</li>
+					</ul>
 				</div>
 			</nav>
 		);

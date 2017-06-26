@@ -8,7 +8,8 @@ class WithdrawalForm extends Component {
 		super(props);
 		this.state = {
 			montoRetiro: '',
-			errors: {}
+			errors: {},
+			loading: false
 		};
 		this.onChange = this.onChange.bind(this)
 		this.submit = this.submit.bind(this)
@@ -16,6 +17,7 @@ class WithdrawalForm extends Component {
 
 	submit(e) {
 		e.preventDefault()
+		//this.state.setState({loading: true})
 		this.props.withdrawal(this.state)
 	}
 
@@ -41,7 +43,7 @@ class WithdrawalForm extends Component {
 					error={errors.montoRetiro}
 					onChange={this.onChange}
 				/>
-				<button className="btn btn-sm btn-success">Solicitar</button>&nbsp;&nbsp;
+				<button className="btn btn-sm btn-success" disabled={this.state.loading}>Solicitar</button>&nbsp;&nbsp;
 				<button type="button" className="btn btn-sm btn-danger" onClick={this.props.hideWithdrawals}>Cancelar</button>
 			</form>
 		)
