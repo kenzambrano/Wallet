@@ -27,6 +27,10 @@ class Balance extends Component {
         1: 'Aprobado',
         2: 'En espera',
         3: 'Rechazado'
+      }, 
+      approvedTypes: {
+        1: 'Aprobar',
+        3: 'Rechazar'
       }
     }
 
@@ -193,7 +197,22 @@ class Balance extends Component {
   }
 
   render() {
-    const { data, dataAdmin, balance, deposits, withdrawals, toDeposit, modalDeposit, modalWithdrawals, errors, types, status, } = this.state;
+    const { 
+      data, dataAdmin, balance, deposits, withdrawals, toDeposit, 
+      modalDeposit, modalWithdrawals, errors, types, status, approvedTypes, 
+      cellEditProps = { mode: 'click', blurToSave: true }, } = this.state;
+
+    var row_editable = {
+          type: "select",
+          options:{
+          values: [1, 3]
+          }
+      };
+
+      var options = {
+        ignoreEditable: true
+      }
+
     return (
       <ReactCSSTransitionGroup
         transitionName="fade"
@@ -208,7 +227,11 @@ class Balance extends Component {
               <br />
               <h3>Solicitud de Retiros</h3>
               <br />
-              <BootstrapTable data={dataAdmin} striped hover remote={true} tableContainerclassName='table-sm'
+              <BootstrapTable 
+                data={dataAdmin} striped hover 
+                remote={true} 
+                cellEdit={cellEditProps}
+                tableContainerclassName='table-sm'
                 pagination
                 options={{
                   sizePerPage: 20,
@@ -219,12 +242,12 @@ class Balance extends Component {
                   firstPage: '<<',
                   lastPage: '>>'
                 }}>
-                <TableHeaderColumn dataField='key' isKey={true} dataSort={true}>Usuario</TableHeaderColumn>
-                <TableHeaderColumn dataField='type' dataFormat={this.enumFormatter} formatExtraData={types}>Transacción</TableHeaderColumn>
+                <TableHeaderColumn dataField='key' hidden={true} isKey={true} dataSort={true}>Usuario</TableHeaderColumn>
+                <TableHeaderColumn dataField='type' dataFormat={this.enumFormatter} formatExtraData={types} options={options}>Transacción</TableHeaderColumn>
                 <TableHeaderColumn dataField='ammount'>Monto</TableHeaderColumn>
                 <TableHeaderColumn dataField='approved' dataFormat={this.enumFormatter} formatExtraData={status}>Estado</TableHeaderColumn>
                 <TableHeaderColumn dataField='updated'>Fecha</TableHeaderColumn>
-                <TableHeaderColumn > Acciones </TableHeaderColumn>
+                <TableHeaderColumn dataFormat={this.enumFormatter} formatExtraData={approvedTypes} editable={row_editable}>Acciones</TableHeaderColumn>
               </BootstrapTable>
             </div>
           </div>
