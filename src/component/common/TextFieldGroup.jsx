@@ -6,20 +6,39 @@ const TextFieldGroup = ({ field, value, label, error, type, onChange, onBlur, pl
     return (
         <div className={classnames('form-group', { 'has-danger': error })}>
             {label && <label className="control-label">{label}</label>}
-            <input
-                onChange={onChange}
-                onBlur={onBlur}
-                value={value}
-                type={type}
-                name={field}
-                className="form-control"
-                placeholder={placeholder}
-                readOnly={readOnly}
-                autoComplete=""
-                required = {required}
-                id={field}
-                onKeyDown={onKeyDown}
+
+          {type === 'textarea' ?
+
+            <textarea
+              onChange={onChange}
+              onBlur={onBlur}
+              value={value}
+              type={type}
+              name={field}
+              className="form-control"
+              placeholder={placeholder}
+              readOnly={readOnly}
+              autoComplete=""
+              required = {required}
+              id={field}
+              onKeyDown={onKeyDown}
+            /> :  <input
+              onChange={onChange}
+              onBlur={onBlur}
+              value={value}
+              type={type}
+              name={field}
+              className="form-control"
+              placeholder={placeholder}
+              readOnly={readOnly}
+              autoComplete=""
+              required = {required}
+              id={field}
+              onKeyDown={onKeyDown}
             />
+          }
+
+
             {error && error}
         </div>  );
 }

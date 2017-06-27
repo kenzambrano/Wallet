@@ -32,7 +32,9 @@ class Balance extends Component {
       approvedTypes: {
         1: 'Aprobar',
         3: 'Rechazar'
-      }
+      },
+      approveItem: [],
+      showApproved: false
     }
 
     this.deposit = this.deposit.bind(this)
@@ -41,6 +43,11 @@ class Balance extends Component {
     this.hideDeposit = this.hideDeposit.bind(this)
     this.showWithdrawals = this.showWithdrawals.bind(this)
     this.hideWithdrawals = this.hideWithdrawals.bind(this)
+    this.showApproved = this.showApproved.bind(this)
+    this.hideApproved = this.hideApproved.bind(this)
+    this.onRowClick = this.onRowClick.bind(this)
+    this.actionFormat = this.actionFormat.bind(this)
+    this.approvedWithdrawal = this.approvedWithdrawal.bind(this)
   }
 
   componentDidMount() {
@@ -69,19 +76,25 @@ class Balance extends Component {
       }
     })
 
-    db.ref(`/transactions/${this.props.auth.user.uid}`).on('value', snap => {
+    db.ref(`/users`).on('value', snap => {
         if(snap.val()){
-          let rows = []
-          snap.forEach((dataAdmin) => {
-            var type = 2 
-            var last = ""
-            if(dataAdmin.val().type == 2){
-               last = dataAdmin.val()
-               last.key = dataAdmin.key
-               rows.push(last)
-            }
+          snap.forEach((user) => {
+            db.ref(`/transactions/${user.key}`).on('value', trans => {
+              let rows = []
+              trans.forEach((dataAdmin) => {
+                var type = 2
+                var last = ""
+                if (dataAdmin.val().type == 2) {
+                  last = dataAdmin.val()
+                  last.key = dataAdmin.key
+                  last.userKey = user.key
+                  rows.push(last)
+                }
+              })
+              this.setState({dataAdmin: rows})
+            })
           })
-          this.setState({ dataAdmin: rows })
+
         }
     })
   }
@@ -107,13 +120,15 @@ class Balance extends Component {
   deposit(state) {    
     const key = db.ref().child('transactions').push().key
     var updates = {}
-    updates[`/transactions/${this.props.auth.user.uid}/` + key] = { 
+    var date = new Date()
+    date = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`
+    updates[`/transactions/${this.props.auth.user.uid}/` + key] = {
       ammount: state.montoDeposito,
       type: 1,
       approved: 1,
       comment: "",
-      created: "",
-      updated: ""
+      created: date,
+      updated: date
     }
     // insert transaction
     db.ref().update(updates)
@@ -141,13 +156,15 @@ class Balance extends Component {
     //alert(Date.parse(new Date()))
     const key = db.ref().child('transactions').push().key
     var updates = {}
+    var date = new Date()
+    date = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`
     updates[`/transactions/${this.props.auth.user.uid}/${key}`] = { 
       ammount: state.montoRetiro,
       type: 2,
       approved: 2,
       comment: "",
-      created: "",
-      updated: ""
+      created: date,
+      updated: date
     }
     // select balance
     db.ref(`balance/${this.props.auth.user.uid}`).on('value', snap => {
@@ -161,20 +178,23 @@ class Balance extends Component {
   }
 
   approvedWithdrawal(state){
-    var user = "5fCFigj0zcZTK9AUuZYPvdsEg4l2"
+    var user = this.state.approveItem.userKey
     //var user = this.props.auth.user.uid
-    var key = "-KnauuB78PjdfC_2qudl"
-    var approvedValue = 1
-    var comment = "Aprobada"
+    var key = this.state.approveItem.key
+    var approvedValue = state.type
+    var comment = state.comment
     var updates = {}
-    alert('approvedWithdrawal')
+    console.log(user)
+    console.log(key)
+    console.log(approvedValue)
+    console.log(comment)
     // approved transaction
-    db.ref(`/transactions/${user}/${key}`).on('value', transactions => {
+    db.ref(`/transactions/${user}/${key}`).once('value', transactions => {
       if (transactions.val() && (parseInt(transactions.val().type) == 2 && parseInt(transactions.val().approved) == 2)) {
-        alert(JSON.stringify(transactions.val()))
+//        alert(JSON.stringify(transactions.val()))
         db.ref(`/balance/${user}`).once('value', balance => {
           if(balance.val() && (parseInt(balance.val().balance) >= parseInt(transactions.val().ammount))){
-            alert(JSON.stringify(balance.val()))
+            //alert(JSON.stringify(balance.val()))
             if(approvedValue == 1){
               var total = parseInt(balance.val().balance) - parseInt(transactions.val().ammount)
               // balance
@@ -200,19 +220,39 @@ class Balance extends Component {
             db.ref().update(updates)
           }
         })
-      } 
+      }
+      this.hideApproved()
     })
+
   }
 
   enumFormatter(cell, row, enumObject){
     return enumObject[cell];
   }
 
+  onRowClick(row) {
+    this.setState({approveItem: row})
+  }
+
+  actionFormat(){
+    return <button className="btn btn-primary" onClick={this.showApproved}>Acción</button>
+  }
+
+  showApproved(){
+    this.setState({showApproved: true})
+
+  }
+
+  hideApproved(){
+    this.setState({showApproved: false})
+  }
+
+
   render() {
     const { 
       data, dataAdmin, balance, deposits, withdrawals, toDeposit, 
       modalDeposit, modalWithdrawals, errors, types, status, approvedTypes, 
-      cellEditProps = { mode: 'click', blurToSave: true }, } = this.state;
+      cellEditProps = { mode: 'click', blurToSave: true }, showApproved} = this.state;
 
     var row_editable = {
           type: "select",
@@ -239,14 +279,11 @@ class Balance extends Component {
               <br />
               <h3>Solicitud de Retiros</h3>
               <br />
-              <div className="deposit-content">
-                <ApprovedForm />
-              </div>
+              <ApprovedForm show={showApproved} hideApproved={this.hideApproved} approvedWithdrawal={this.approvedWithdrawal}/>
               <br />
               <BootstrapTable 
                 data={dataAdmin} striped hover 
-                remote={true} 
-                cellEdit={cellEditProps}
+                remote={true}
                 tableContainerclassName='table-sm'
                 pagination
                 options={{
@@ -256,7 +293,8 @@ class Balance extends Component {
                   prePage: '<',
                   nextPage: '>',
                   firstPage: '<<',
-                  lastPage: '>>'
+                  lastPage: '>>',
+                  onRowClick: this.onRowClick
                 }}>
                 <TableHeaderColumn dataField='key' hidden={true} isKey={true} dataSort={true}>Usuario</TableHeaderColumn>
                 <TableHeaderColumn dataField='type' dataFormat={this.enumFormatter} formatExtraData={types} options={options}>Transacción</TableHeaderColumn>
@@ -264,7 +302,7 @@ class Balance extends Component {
                 <TableHeaderColumn dataField='approved' dataFormat={this.enumFormatter} formatExtraData={status}>Estado</TableHeaderColumn>
                 <TableHeaderColumn dataField='updated'>Fecha</TableHeaderColumn>
                 <TableHeaderColumn dataField='comment'>Comentario</TableHeaderColumn>
-                <TableHeaderColumn dataFormat={this.enumFormatter} formatExtraData={approvedTypes} editable={row_editable}>Acciones</TableHeaderColumn>
+                <TableHeaderColumn dataFormat={this.actionFormat}>Acción</TableHeaderColumn>
               </BootstrapTable>
             </div>
           </div>
