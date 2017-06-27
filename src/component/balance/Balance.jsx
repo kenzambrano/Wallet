@@ -184,17 +184,14 @@ class Balance extends Component {
     var approvedValue = state.type
     var comment = state.comment
     var updates = {}
-    console.log(user)
-    console.log(key)
-    console.log(approvedValue)
-    console.log(comment)
+    var date = new Date()
+    date = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`
     // approved transaction
     db.ref(`/transactions/${user}/${key}`).once('value', transactions => {
       if (transactions.val() && (parseInt(transactions.val().type) == 2 && parseInt(transactions.val().approved) == 2)) {
-//        alert(JSON.stringify(transactions.val()))
+        // validate balance
         db.ref(`/balance/${user}`).once('value', balance => {
           if(balance.val() && (parseInt(balance.val().balance) >= parseInt(transactions.val().ammount))){
-            //alert(JSON.stringify(balance.val()))
             if(approvedValue == 1){
               var total = parseInt(balance.val().balance) - parseInt(transactions.val().ammount)
               // balance
@@ -210,11 +207,11 @@ class Balance extends Component {
             }
             updates[`/transactions/${user}/${key}`] = { 
               ammount: parseInt(transactions.val().ammount),
-              type: 2, //Retiro
+              type: 2, 
               approved: approvedValue,
               comment: comment,
-              created: "",
-              updated: ""
+              created: date,
+              updated: date
             }
             // update transaction
             db.ref().update(updates)
