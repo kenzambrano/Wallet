@@ -11,6 +11,10 @@ class Nav extends Component {
         };
     }
 
+	logout(){
+		logout()
+	}
+
 	render() {
 		return(
 			<nav className="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">
@@ -24,10 +28,10 @@ class Nav extends Component {
 					<ul className="navbar-nav my-2 my-sm-0">
 						<li className="nav-item dropdown">
 							<a className="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-								Kender Zambrano
+								{this.props.auth.user.name} {this.props.auth.user.lastName}
 							</a>
 							<div className="dropdown-menu" aria-labelledby="dropdown01">
-								<a className="dropdown-item" onClick={this.props.logout} href="#">Cerrar sesión</a>
+								<a className="dropdown-item" onClick={this.logout}>Cerrar sesión</a>
 							</div>
 						</li>
 					</ul>
@@ -38,7 +42,12 @@ class Nav extends Component {
 }
 
 Nav.proptypes = {
-	logout: React.PropTypes.func.isRequired
+	auth: React.PropTypes.object.isRequired
 }
 
-export default Nav;
+function mapStateToProps(state) {
+  return {
+    auth: state.auth
+  }
+}
+export default connect(mapStateToProps)(Nav);

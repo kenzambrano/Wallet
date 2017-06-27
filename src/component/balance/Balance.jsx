@@ -5,6 +5,7 @@ import 'react-bootstrap-table/dist/react-bootstrap-table-all.min.css'
 import { connect } from 'react-redux'
 import DepositForm from './DepositForm'
 import WithdrawalForm from './WithdrawalForm'
+import ApprovedForm from './ApprovedForm'
 import { db } from '../../api/firebase'
 class Balance extends Component {
   constructor(props) {
@@ -103,9 +104,6 @@ class Balance extends Component {
     this.setState({ errors: {form: null}})
   }
 
-  getTime() {
-  }
-
   deposit(state) {    
     const key = db.ref().child('transactions').push().key
     var updates = {}
@@ -113,7 +111,7 @@ class Balance extends Component {
       ammount: state.montoDeposito,
       type: 1,
       approved: 1,
-      note: "",
+      comment: "",
       created: "",
       updated: ""
     }
@@ -143,11 +141,11 @@ class Balance extends Component {
     //alert(Date.parse(new Date()))
     const key = db.ref().child('transactions').push().key
     var updates = {}
-    updates[`/transactions/${this.props.auth.user.uid}/` + key] = { 
+    updates[`/transactions/${this.props.auth.user.uid}/${key}`] = { 
       ammount: state.montoRetiro,
       type: 2,
       approved: 2,
-      note: "",
+      comment: "",
       created: "",
       updated: ""
     }
@@ -156,15 +154,6 @@ class Balance extends Component {
         if (snap.val() && ((parseInt(snap.val().balance)) >= (parseInt(state.montoRetiro)))) {
           // insert transaction
           db.ref().update(updates)
-          // withdrawals
-          db.ref(`withdrawals/${this.props.auth.user.uid}`).once('value', withdrawals => {
-            if (withdrawals.val()) {
-              var total = (parseInt(withdrawals.val().withdrawals)) + (parseInt(state.montoRetiro))
-              db.ref(`withdrawals/${this.props.auth.user.uid}`).set({ withdrawals: total })
-            } else {
-              db.ref(`withdrawals/${this.props.auth.user.uid}`).set({ withdrawals: state.montoRetiro })
-            }
-          })
           this.setState({ errors: {form: null}})
         } else 
           this.setState({ errors: {form: "Saldo insuficiente para esta operación."}})
@@ -172,20 +161,43 @@ class Balance extends Component {
   }
 
   approvedWithdrawal(state){
-    var user = "5fCFigj0zcZTK9AUuZYPvdsEg4l25fCFigj0zcZTK9AUuZYPvdsEg4l2"
+    var user = "5fCFigj0zcZTK9AUuZYPvdsEg4l2"
     //var user = this.props.auth.user.uid
-    var id = "-KnZYP-h6vII_xh5oGkf"
+    var key = "-KnauuB78PjdfC_2qudl"
     var approvedValue = 1
-    var noteValue = ""
+    var comment = "Aprobada"
+    var updates = {}
+    alert('approvedWithdrawal')
     // approved transaction
-    db.ref(`/transactions/${user}/${id}`).on('value', transactions => {
+    db.ref(`/transactions/${user}/${key}`).on('value', transactions => {
       if (transactions.val() && (parseInt(transactions.val().type) == 2 && parseInt(transactions.val().approved) == 2)) {
+        alert(JSON.stringify(transactions.val()))
         db.ref(`/balance/${user}`).once('value', balance => {
           if(balance.val() && (parseInt(balance.val().balance) >= parseInt(transactions.val().ammount))){
-            db.ref(`/transactions/${user}/${id}`).set({ 
-              approved: approvedValue, 
-              note: noteValue 
-            })
+            alert(JSON.stringify(balance.val()))
+            if(approvedValue == 1){
+              var total = parseInt(balance.val().balance) - parseInt(transactions.val().ammount)
+              // balance
+              db.ref(`balance/${user}`).set({ balance:  total })
+              // withdrawals
+              db.ref(`withdrawals/${user}`).once('value', withdrawals => {
+                if (withdrawals.val()) {
+                  var total = (parseInt(withdrawals.val().withdrawals)) + parseInt(transactions.val().ammount)
+                  db.ref(`withdrawals/${user}`).set({ withdrawals: total })
+                } else 
+                  db.ref(`withdrawals/${user}`).set({ withdrawals: parseInt(transactions.val().ammount) })
+              })
+            }
+            updates[`/transactions/${user}/${key}`] = { 
+              ammount: parseInt(transactions.val().ammount),
+              type: 2, //Retiro
+              approved: approvedValue,
+              comment: comment,
+              created: "",
+              updated: ""
+            }
+            // update transaction
+            db.ref().update(updates)
           }
         })
       } 
@@ -227,6 +239,10 @@ class Balance extends Component {
               <br />
               <h3>Solicitud de Retiros</h3>
               <br />
+              <div className="deposit-content">
+                <ApprovedForm />
+              </div>
+              <br />
               <BootstrapTable 
                 data={dataAdmin} striped hover 
                 remote={true} 
@@ -247,6 +263,7 @@ class Balance extends Component {
                 <TableHeaderColumn dataField='ammount'>Monto</TableHeaderColumn>
                 <TableHeaderColumn dataField='approved' dataFormat={this.enumFormatter} formatExtraData={status}>Estado</TableHeaderColumn>
                 <TableHeaderColumn dataField='updated'>Fecha</TableHeaderColumn>
+                <TableHeaderColumn dataField='comment'>Comentario</TableHeaderColumn>
                 <TableHeaderColumn dataFormat={this.enumFormatter} formatExtraData={approvedTypes} editable={row_editable}>Acciones</TableHeaderColumn>
               </BootstrapTable>
             </div>
