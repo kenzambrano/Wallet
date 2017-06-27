@@ -117,6 +117,13 @@ class Balance extends Component {
     this.setState({ errors: {form: null}})
   }
 
+  showApproved(){
+    this.setState({showApproved: true})
+  }
+  hideApproved(){
+    this.setState({showApproved: false})
+  }
+
   deposit(state) {    
     const key = db.ref().child('transactions').push().key
     var updates = {}
@@ -153,7 +160,6 @@ class Balance extends Component {
   }
 
   withdrawal(state) {
-    //alert(Date.parse(new Date()))
     const key = db.ref().child('transactions').push().key
     var updates = {}
     var date = new Date()
@@ -167,7 +173,7 @@ class Balance extends Component {
       updated: date
     }
     // select balance
-    db.ref(`balance/${this.props.auth.user.uid}`).on('value', snap => {
+    db.ref(`balance/${this.props.auth.user.uid}`).once('value', snap => {
         if (snap.val() && ((parseInt(snap.val().balance)) >= (parseInt(state.montoRetiro)))) {
           // insert transaction
           db.ref().update(updates)
@@ -179,7 +185,6 @@ class Balance extends Component {
 
   approvedWithdrawal(state){
     var user = this.state.approveItem.userKey
-    //var user = this.props.auth.user.uid
     var key = this.state.approveItem.key
     var approvedValue = state.type
     var comment = state.comment
@@ -220,7 +225,6 @@ class Balance extends Component {
       }
       this.hideApproved()
     })
-
   }
 
   enumFormatter(cell, row, enumObject){
@@ -235,16 +239,6 @@ class Balance extends Component {
     return <button className="btn btn-primary" onClick={this.showApproved}>Acción</button>
   }
 
-  showApproved(){
-    this.setState({showApproved: true})
-
-  }
-
-  hideApproved(){
-    this.setState({showApproved: false})
-  }
-
-
   render() {
     const { 
       data, dataAdmin, balance, deposits, withdrawals, toDeposit, 
@@ -252,15 +246,11 @@ class Balance extends Component {
       cellEditProps = { mode: 'click', blurToSave: true }, showApproved} = this.state;
 
     var row_editable = {
-          type: "select",
-          options:{
-          values: [1, 3]
-          }
-      };
-
-      var options = {
-        ignoreEditable: true
-      }
+        type: "select",
+        options:{
+        values: [1, 3]
+        }
+    };
 
     return (
       <ReactCSSTransitionGroup
@@ -294,7 +284,7 @@ class Balance extends Component {
                   onRowClick: this.onRowClick
                 }}>
                 <TableHeaderColumn dataField='key' hidden={true} isKey={true} dataSort={true}>Usuario</TableHeaderColumn>
-                <TableHeaderColumn dataField='type' dataFormat={this.enumFormatter} formatExtraData={types} options={options}>Transacción</TableHeaderColumn>
+                <TableHeaderColumn dataField='type' dataFormat={this.enumFormatter} formatExtraData={types}>Transacción</TableHeaderColumn>
                 <TableHeaderColumn dataField='ammount'>Monto</TableHeaderColumn>
                 <TableHeaderColumn dataField='approved' dataFormat={this.enumFormatter} formatExtraData={status}>Estado</TableHeaderColumn>
                 <TableHeaderColumn dataField='updated'>Fecha</TableHeaderColumn>
@@ -364,7 +354,6 @@ class Balance extends Component {
             </div>
           </div>
         }
-
       </ReactCSSTransitionGroup>
     );
   }

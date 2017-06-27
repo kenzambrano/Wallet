@@ -22,7 +22,9 @@ To start the application you must perform the following steps:
     npm build for production
 ```
 
-And then visit http://localhost:3000/.
+And then visit:
+ - local: http://localhost:3000/
+ - demo: https://wallet-dce29.firebaseapp.com/
 
 ### Test Users
     - Admin credentials:
