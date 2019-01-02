@@ -32,5 +32,5 @@ And then visit:
         password: 123456
 
     - User:
-        user: kenderzambrano@gmail.com
+        user: 
         password: 123456
